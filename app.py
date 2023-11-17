@@ -17,14 +17,22 @@ def sendMessage(pkt):
     send(message)
 
 def getPacketInfo(pkt):
-    pktInfo = ""
-    pktInfo += ("Source IP: " + str(pkt.payload.src) + " ") 
-    pktInfo += ("Source port: " + str(pkt.payload.payload.sport) + " ") 
-    pktInfo += ("Destination IP: " + str(pkt.payload.dst) + " ") 
-    pktInfo += ("Destination port: " + str(pkt.payload.payload.dport) + " ")
-    pktInfo += ("Protocol: " + getProtocol(pkt) + " ")
-    pktInfo += ("Length: " + str(len(pkt)))
-    return pktInfo
+    try:
+        pktInfo = ""
+        pktInfo += ("Source IP: " + str(pkt.payload.src) + " ") 
+        pktInfo += ("Source port: " + str(pkt.payload.payload.sport) + " ") 
+        pktInfo += ("Destination IP: " + str(pkt.payload.dst) + " ") 
+        pktInfo += ("Destination port: " + str(pkt.payload.payload.dport) + " ")
+        pktInfo += ("Protocol: " + getProtocol(pkt) + " ")
+        pktInfo += ("Length: " + str(len(pkt)))
+        return pktInfo
+    except AttributeError:
+        print('attr error')
+        pktInfo = ""
+        pktInfo += ("Source IP: " + str(pkt.payload.src) + " ")
+        pktInfo += ("Destination IP: " + str(pkt.payload.dst) + " ")
+        pktInfo += ("Protocol(IP): " + str(pkt.payload.proto) + " ")
+        return pktInfo
 
 def getProtocol(pkt):
     if(str(pkt.payload.payload.sport) == '53' or (pkt.payload.payload.dport) == '53'):
@@ -68,42 +76,44 @@ def dashboard():
 
             streamDict = {}
             protocolDict = {}
-            for row in packetList:
-                packetNo = row.split("No.:")[1].split()[0].strip()
-                sourceIP = row.split("Source IP:")[1].split()[0].strip()
-                sourcePort = row.split("Source port:")[1].split()[0].strip()
-                destinationIP = row.split("Destination IP:")[1].split()[0].strip()
-                destinationPort = row.split("Destination port:")[1].split()[0].strip()
+            try:
+                for row in packetList:
+                    packetNo = row.split("No.:")[1].split()[0].strip()
+                    sourceIP = row.split("Source IP:")[1].split()[0].strip()
+                    sourcePort = row.split("Source port:")[1].split()[0].strip()
+                    destinationIP = row.split("Destination IP:")[1].split()[0].strip()
+                    destinationPort = row.split("Destination port:")[1].split()[0].strip()
 
 
-                if bool(streamDict):
-                    sameStream = 0
-                    for key in streamDict:
-                        if (sourceIP in streamDict[key]['IP']) and (destinationIP in streamDict[key]['IP']) and (sourcePort in streamDict[key]['Port']) and (destinationPort in streamDict[key]['Port']):
-                            oldValue = streamDict[key]['PacketNo.']
-                            streamDict[key]['PacketNo.'] = oldValue + ',' + packetNo
-                            sameStream = 1
-                            break
-                    if sameStream == 0:
-                        newKey = 'stream#' + str(len(streamDict) + 1)
-                        streamDict[newKey] = {
+                    if bool(streamDict):
+                        sameStream = 0
+                        for key in streamDict:
+                            if (sourceIP in streamDict[key]['IP']) and (destinationIP in streamDict[key]['IP']) and (sourcePort in streamDict[key]['Port']) and (destinationPort in streamDict[key]['Port']):
+                                oldValue = streamDict[key]['PacketNo.']
+                                streamDict[key]['PacketNo.'] = oldValue + ',' + packetNo
+                                sameStream = 1
+                                break
+                        if sameStream == 0:
+                            newKey = 'stream#' + str(len(streamDict) + 1)
+                            streamDict[newKey] = {
+                                'IP': sourceIP + ', ' + destinationIP,
+                                'Port': sourcePort + ', ' + destinationPort,
+                                'PacketNo.': packetNo
+                            }
+                    else:
+                        streamDict['stream#1'] = {
                             'IP': sourceIP + ', ' + destinationIP,
                             'Port': sourcePort + ', ' + destinationPort,
                             'PacketNo.': packetNo
                         }
-                else:
-                    streamDict['stream#1'] = {
-                        'IP': sourceIP + ', ' + destinationIP,
-                        'Port': sourcePort + ', ' + destinationPort,
-                        'PacketNo.': packetNo
-                    }
 
-                protocol = row.split("Protocol:")[1].split()[0].strip()
-                if protocol in protocolDict:
-                    protocolDict[protocol] += 1
-                else:
-                    protocolDict[protocol] = 1
-
+                    protocol = row.split("Protocol:")[1].split()[0].strip()
+                    if protocol in protocolDict:
+                        protocolDict[protocol] += 1
+                    else:
+                        protocolDict[protocol] = 1
+            except IndexError:
+                print('idx error')
             packetList.append(protocolDict)
             packetList.append(streamDict)
             return packetList
@@ -125,7 +135,7 @@ def packet_capture():
         #     result = sniffer.stop()
         #     wrpcap("result.pcap", result)
 
-        packetList = sniff(iface=request.form['interfaceName'], count=int(request.form['count']), filter='ip', prn=lambda x: x.show())
+        packetList = sniff(iface=request.form['interfaceName'], count=int(request.form['count']), filter='ip')
         resultList = []
         for packet in packetList:
             resultList.append(getPacketInfo(packet))
