@@ -53,6 +53,9 @@ def getNetworkInterface():
     interfaceNames = conf.ifaces
     return interfaceNames
 
+def getMyIP(interfaceName):
+    return get_if_addr(interfaceName)
+
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():

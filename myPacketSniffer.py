@@ -19,8 +19,8 @@ from scapy.all import *
 # a.show()
 # sniff(iface="Ethernet", prn=lambda x: x.show(), count=5)
 # r = rdpcap('./capture01.pcap')
-# print(get_if_addr("Intel(R) Ethernet Connection (14) I219-V"))
-r = sniff(offline='result.pcap')
+print(get_if_addr("Intel(R) Ethernet Connection (14) I219-V"))
+# r = sniff(offline='result.pcap')
 # r.plot(lambda x: x.id)
 # r.show()
 # packet04_l2 = r[10]
@@ -35,8 +35,8 @@ r = sniff(offline='result.pcap')
 
 # ls(tmp)
 # print(type(tmp))
-pkt = r[62]
-pkt.show()
+# pkt = r[62]
+# pkt.show()
 # pkt.show2()
 # pkt.sprintf()
 # ls(pkt)
